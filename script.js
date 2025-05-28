@@ -1,5 +1,5 @@
-// OpenWeatherMap API key - You need to get your own free API key from openweathermap.org
-const API_KEY = 'YOUR_API_KEY';
+// OpenWeatherMap API key - replace with your own key
+const API_KEY = 'a9f5606f04fdeed207c7bba36ecbd36f';
 const BASE_URL = 'https://api.openweathermap.org/data/2.5/weather';
 
 // DOM elements
@@ -8,6 +8,7 @@ const searchBtn = document.getElementById('searchBtn');
 const loading = document.getElementById('loading');
 const errorMessage = document.getElementById('errorMessage');
 const weatherInfo = document.getElementById('weatherInfo');
+const suggestionsList = document.getElementById('suggestions'); // UL for suggestions
 
 // Weather data elements
 const cityName = document.getElementById('cityName');
@@ -21,27 +22,44 @@ const windSpeed = document.getElementById('windSpeed');
 const pressure = document.getElementById('pressure');
 const visibility = document.getElementById('visibility');
 
-// Event listeners
+const themeToggle = document.getElementById('themeToggle');
+
 searchBtn.addEventListener('click', searchWeather);
-cityInput.addEventListener('keypress', (e) => {
+
+cityInput.addEventListener('input', showSuggestions);
+
+cityInput.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') {
+        e.preventDefault();
         searchWeather();
+        suggestionsList.innerHTML = '';
     }
 });
 
-// Initialize with default city
+// When clicking on a suggestion
+suggestionsList.addEventListener('click', (e) => {
+    if (e.target.tagName === 'LI') {
+        cityInput.value = e.target.textContent;
+        searchWeather();
+        suggestionsList.innerHTML = '';
+    }
+});
+
+themeToggle.addEventListener('click', () => {
+    document.body.classList.toggle('dark-theme');
+});
+
 document.addEventListener('DOMContentLoaded', () => {
     if (API_KEY === 'YOUR_API_KEY_HERE') {
         showError('Please add your OpenWeatherMap API key to the script.js file');
         return;
     }
-    // You can set a default city here
-    // searchWeatherByCity('London');
+    loadSavedCities();
 });
 
 async function searchWeather() {
     const city = cityInput.value.trim();
-    
+
     if (!city) {
         showError('Please enter a city name');
         return;
@@ -54,40 +72,43 @@ async function searchWeather() {
 
     await searchWeatherByCity(city);
     cityInput.value = '';
+    suggestionsList.innerHTML = '';
 }
 
 async function searchWeatherByCity(city) {
     try {
+        // Hide old data/errors and show loading spinner
+        errorMessage.classList.add('hidden');
+        weatherInfo.classList.add('hidden');
         showLoading();
-        
+
         const response = await fetch(
             `${BASE_URL}?q=${encodeURIComponent(city)}&appid=${API_KEY}&units=metric`
         );
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
+
         const data = await response.json();
-        
-        if (data.cod === '404') {
-            throw new Error('City not found');
+
+        if (!response.ok) {
+            throw new Error(data.message || 'Error fetching weather data');
         }
-        
+
         displayWeatherData(data);
-        
+        saveCity(city);
+
     } catch (error) {
         console.error('Error fetching weather data:', error);
-        showError(error.message === 'City not found' ? 'City not found. Please try again.' : 'Failed to fetch weather data. Please try again.');
+        showError(
+            error.message.toLowerCase().includes('city not found')
+                ? 'City not found. Please try again.'
+                : 'Failed to fetch weather data. Please try again.'
+        );
     }
 }
 
 function displayWeatherData(data) {
-    // Hide loading and error states
     loading.classList.add('hidden');
     errorMessage.classList.add('hidden');
-    
-    // Update weather information
+
     cityName.textContent = `${data.name}, ${data.sys.country}`;
     currentDate.textContent = new Date().toLocaleDateString('en-US', {
         weekday: 'long',
@@ -95,19 +116,18 @@ function displayWeatherData(data) {
         month: 'long',
         day: 'numeric'
     });
-    
+
     temp.textContent = Math.round(data.main.temp);
     weatherIcon.src = `https://openweathermap.org/img/wn/${data.weather[0].icon}@2x.png`;
     weatherIcon.alt = data.weather[0].description;
     description.textContent = data.weather[0].description;
-    
+
     feelsLike.textContent = `${Math.round(data.main.feels_like)}°C`;
     humidity.textContent = `${data.main.humidity}%`;
     windSpeed.textContent = `${data.wind.speed} m/s`;
     pressure.textContent = `${data.main.pressure} hPa`;
     visibility.textContent = data.visibility ? `${(data.visibility / 1000).toFixed(1)} km` : 'N/A';
-    
-    // Show weather info
+
     weatherInfo.classList.remove('hidden');
 }
 
@@ -118,47 +138,47 @@ function showLoading() {
 }
 
 function showError(message) {
+    errorMessage.textContent = message;
+    errorMessage.classList.remove('hidden');
     loading.classList.add('hidden');
     weatherInfo.classList.add('hidden');
-    errorMessage.classList.remove('hidden');
-    errorMessage.querySelector('p').textContent = message;
 }
 
-// Get user's location weather (optional feature)
-function getUserLocationWeather() {
-    if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-            async (position) => {
-                const lat = position.coords.latitude;
-                const lon = position.coords.longitude;
-                
-                try {
-                    showLoading();
-                    const response = await fetch(
-                        `${BASE_URL}?lat=${lat}&lon=${lon}&appid=${API_KEY}&units=metric`
-                    );
-                    
-                    if (!response.ok) {
-                        throw new Error('Failed to fetch weather data');
-                    }
-                    
-                    const data = await response.json();
-                    displayWeatherData(data);
-                    
-                } catch (error) {
-                    console.error('Error fetching weather data:', error);
-                    showError('Failed to fetch weather data for your location.');
-                }
-            },
-            (error) => {
-                console.error('Geolocation error:', error);
-                showError('Unable to get your location.');
-            }
-        );
-    } else {
-        showError('Geolocation is not supported by this browser.');
+// Save city to localStorage - no duplicates, max 10 cities
+function saveCity(city) {
+    let cities = JSON.parse(localStorage.getItem('savedCities')) || [];
+    city = city.toLowerCase();
+
+    // Avoid duplicates
+    if (!cities.includes(city)) {
+        cities.unshift(city); // add to front
+        if (cities.length > 10) cities.pop(); // keep max 10
+        localStorage.setItem('savedCities', JSON.stringify(cities));
     }
 }
 
-// Uncomment the line below if you want to automatically get weather for user's location on page load
-// getUserLocationWeather();
+// Load saved cities from localStorage
+function loadSavedCities() {
+    const cities = JSON.parse(localStorage.getItem('savedCities')) || [];
+    // No UI on load needed but ready for suggestions
+}
+
+// Show suggestions dropdown from saved cities filtered by input
+function showSuggestions() {
+    const input = cityInput.value.trim().toLowerCase();
+    suggestionsList.innerHTML = '';
+
+    if (!input) return;
+
+    const cities = JSON.parse(localStorage.getItem('savedCities')) || [];
+    const filtered = cities.filter(city => city.startsWith(input));
+
+    if (filtered.length === 0) return;
+
+    filtered.forEach(city => {
+        const li = document.createElement('li');
+        // Capitalize first letter for display
+        li.textContent = city.charAt(0).toUpperCase() + city.slice(1);
+        suggestionsList.appendChild(li);
+    });
+}
