@@ -11,6 +11,12 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
+    transition: background 0.3s ease;
+}
+
+body.dark-theme {
+    background: linear-gradient(135deg, #2c3e50 0%, #4ca1af 100%);
+    color: #ecf0f1;
 }
 
 .container {
@@ -26,6 +32,14 @@ body {
     box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
     backdrop-filter: blur(10px);
     border: 1px solid rgba(255, 255, 255, 0.2);
+    transition: background 0.3s ease, color 0.3s ease;
+    position: relative;
+}
+
+body.dark-theme .weather-app {
+    background: rgba(44, 62, 80, 0.95);
+    border-color: rgba(236, 240, 241, 0.2);
+    color: #ecf0f1;
 }
 
 h1 {
@@ -34,12 +48,34 @@ h1 {
     margin-bottom: 30px;
     font-size: 2.2rem;
     font-weight: 300;
+    transition: color 0.3s ease;
+}
+
+body.dark-theme h1 {
+    color: #ecf0f1;
+}
+
+#themeToggle {
+    background: #0984e3;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-weight: 600;
+    margin-bottom: 20px;
+    transition: background 0.3s ease;
+}
+
+#themeToggle:hover {
+    background: #74b9ff;
 }
 
 .search-container {
     display: flex;
     gap: 10px;
     margin-bottom: 30px;
+    position: relative;
 }
 
 #cityInput {
@@ -50,6 +86,8 @@ h1 {
     font-size: 16px;
     outline: none;
     transition: all 0.3s ease;
+    z-index: 2;
+    position: relative;
 }
 
 #cityInput:focus {
@@ -67,6 +105,7 @@ h1 {
     font-size: 16px;
     font-weight: 500;
     transition: all 0.3s ease;
+    z-index: 2;
 }
 
 #searchBtn:hover {
@@ -121,11 +160,21 @@ h1 {
     color: #2d3436;
     font-size: 1.8rem;
     margin-bottom: 5px;
+    transition: color 0.3s ease;
+}
+
+body.dark-theme .weather-header h2 {
+    color: #ecf0f1;
 }
 
 .weather-header p {
     color: #636e72;
     font-size: 0.9rem;
+    transition: color 0.3s ease;
+}
+
+body.dark-theme .weather-header p {
+    color: #bdc3c7;
 }
 
 .weather-main {
@@ -136,17 +185,32 @@ h1 {
     padding: 20px;
     background: rgba(116, 185, 255, 0.1);
     border-radius: 15px;
+    transition: background 0.3s ease;
+}
+
+body.dark-theme .weather-main {
+    background: rgba(52, 73, 94, 0.6);
 }
 
 .temperature {
     font-size: 3.5rem;
     font-weight: 300;
     color: #2d3436;
+    transition: color 0.3s ease;
+}
+
+body.dark-theme .temperature {
+    color: #ecf0f1;
 }
 
 .unit {
     font-size: 1.5rem;
     color: #636e72;
+    transition: color 0.3s ease;
+}
+
+body.dark-theme .unit {
+    color: #bdc3c7;
 }
 
 .weather-icon {
@@ -164,6 +228,11 @@ h1 {
     color: #2d3436;
     font-weight: 500;
     text-transform: capitalize;
+    transition: color 0.3s ease;
+}
+
+body.dark-theme .weather-icon p {
+    color: #ecf0f1;
 }
 
 .weather-details {
@@ -180,20 +249,73 @@ h1 {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    transition: background 0.3s ease, border-color 0.3s ease;
+}
+
+body.dark-theme .detail-item {
+    background: rgba(52, 73, 94, 0.6);
+    border-color: #3498db;
 }
 
 .detail-item .label {
     color: #636e72;
     font-size: 0.9rem;
+    transition: color 0.3s ease;
+}
+
+body.dark-theme .detail-item .label {
+    color: #bdc3c7;
 }
 
 .detail-item span:last-child {
     color: #2d3436;
     font-weight: 500;
+    transition: color 0.3s ease;
+}
+
+body.dark-theme .detail-item span:last-child {
+    color: #ecf0f1;
 }
 
 .hidden {
     display: none;
+}
+
+#themeToggle {
+    margin-bottom: 30px;
+}
+
+/* Suggestions Dropdown */
+.suggestions-list {
+    position: absolute;
+    top: 55px;
+    left: 0;
+    right: 100px;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    max-height: 150px;
+    overflow-y: auto;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    z-index: 10;
+}
+
+body.dark-theme .suggestions-list {
+    background: #34495e;
+    color: #ecf0f1;
+}
+
+.suggestions-list li {
+    padding: 10px 20px;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.suggestions-list li:hover {
+    background: #74b9ff;
+    color: white;
 }
 
 /* Responsive Design */
