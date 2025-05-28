@@ -23,4 +23,7 @@ A responsive and stylish weather application built with HTML, CSS, and JavaScrip
 
 ![Weather App Screenshot](screenshot.png)
 
+## NOTE :
+
+Replace with your'e own API key 
 
